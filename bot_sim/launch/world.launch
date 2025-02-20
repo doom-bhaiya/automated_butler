@@ -1,0 +1,17 @@
+<launch>
+    <arg name="world_file" default="$(find bot_sim)/worlds/bot_world.world"/>
+    
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(arg world_file)"/>
+        <arg name="paused" value="false"/>
+    </include>
+    
+    <param name="robot_description" command="$(find xacro)/xacro $(find bot_sim)/urdf/bot.urdf" />
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-param robot_description -urdf -model my_robot -x 4.3 -y -4.6 -z 0.2 -Y 1.5708"/>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/>
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+
+</launch>
