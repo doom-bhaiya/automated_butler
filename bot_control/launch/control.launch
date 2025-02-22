@@ -1,0 +1,57 @@
+<launch>
+  <!-- Map Server -->
+    <arg name="map" default="$(find bot_mapping)/maps/map.yaml" />
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map)" />
+
+  <!-- AMCL Node -->
+  <node name="amcl" pkg="amcl" type="amcl" output="screen">
+  
+    <param name="odom_frame_id" value="odom"/>
+    <param name="odom_model_type" value="diff-corrected"/>
+    <param name="base_frame_id" value="robot_footprint"/>
+    <param name="global_frame_id" value="map"/>
+
+
+   <!-- If you choose to define initial pose here -->
+    <param name="initial_pose_x" value="5.65"/>
+    <param name="initial_pose_y" value="-4.34"/>
+
+    <param name="initial_pose_a" value="1.57"/>
+
+    <param name= "initial_cov_xx" value="0.005" />
+    <param name= "initial_cov_yy" value="0.005" />
+    <param name= "initial_cov_aa" value="0.001" />
+
+    <param name="min_particles" value="25"/>
+    <param name="max_particles" value="5000"/>
+    <param name="update_min_a" value="0.02"/>
+    <param name="update_min_d" value="0.01"/>
+
+    
+  </node>
+  
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_odom"
+      args="0 0 0 0 0 0 map odom" />
+
+  <arg name="cmd_vel_topic" default="/cmd_vel" />
+  <arg name="odom_topic" default="odom" />
+  <arg name="move_forward_only" default="false"/>
+
+  <!-- move_base -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+    <rosparam file="$(find bot_control)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find bot_control)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find bot_control)/config/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find bot_control)/config/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find bot_control)/config/move_base_params.yaml" command="load" />
+    <rosparam file="$(find bot_control)/config/dwa_local_planner_params.yaml" command="load" />
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
+    <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find bot_control)/rvizConfig/rviz.rviz"/>
+
+
+</launch>
